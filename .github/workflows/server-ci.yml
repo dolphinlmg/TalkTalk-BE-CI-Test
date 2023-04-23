@@ -24,6 +24,13 @@ jobs:
 
       - name: Run chmod to make gradlew executable
         run: chmod +x ./gradlew
+        
+      - name: Copy yml
+        env: 
+          BE_APPLICATION_YML: ${{BE_APPLICATION_YML}}
+          BE_APPLICATION_PROD_YML: ${{BE_APPLICATION_PROD_YML}}
+        run: echo $BE_APPLICATION_YML > src/main/resources/application.yml &&
+             echo $BE_APPLICATION_PROD_YML > src/main/resouces/application-prod.yml
 
       - name: Test with Gradle
         run: ./gradlew test
