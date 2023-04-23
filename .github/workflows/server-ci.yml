@@ -34,7 +34,7 @@ jobs:
              echo $BE_APPLICATION_PROD_YML | base64 --decode > src/main/resources/application-prod.yml
 
       - name: Test with Gradle
-        run: ./gradlew test -i
+        run: ./gradlew test
 
       - name: Build Gradle
         run: ./gradlew build
