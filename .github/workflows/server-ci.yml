@@ -31,7 +31,7 @@ jobs:
           BE_APPLICATION_YML: ${{ secrets.BE_APPLICATION_YML }}
           BE_APPLICATION_PROD_YML: ${{ secrets.BE_APPLICATION_PROD_YML }}
         run: echo $BE_APPLICATION_YML > src/main/resources/application.yml &&
-             echo $BE_APPLICATION_PROD_YML > src/main/resouces/application-prod.yml
+             echo $BE_APPLICATION_PROD_YML > src/main/resources/application-prod.yml
 
       - name: Test with Gradle
         run: ./gradlew test
