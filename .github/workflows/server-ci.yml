@@ -27,13 +27,6 @@ jobs:
         run: chmod +x ./gradlew
         
       - name: Copy yml
-        env: 
-          BE_APPLICATION_YML: ${{ secrets.BE_APPLICATION_YML }}
-          BE_APPLICATION_PROD_YML: ${{ secrets.BE_APPLICATION_PROD_YML }}
-        run: echo $BE_APPLICATION_YML | base64 --decode > src/main/resources/application.yml &&
-             echo $BE_APPLICATION_PROD_YML | base64 --decode > src/main/resources/application-prod.yml
-
-      - name: Copy yml
         env:
           BE_APPLICATION_YML: ${{ secrets.BE_APPLICATION_YML }}
           BE_APPLICATION_PROD_YML: ${{ secrets.BE_APPLICATION_PROD_YML }}
