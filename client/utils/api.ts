@@ -30,16 +30,40 @@ async function post<T>(url: string, body: object, functionName: string): Promise
   }
 }
 
+async function patch<T>(url: string, body: object, functionName: string): Promise<T> {
+  try {
+    return (await apiAxiosInstance.patch(url, body)).data;
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(`API call error ${functionName}`);
+    }
+    throw e;
+  }
+}
+
+export async function getMyProfile() {
+  return await get<UserProfileResponse>(`/user/profile/self`, 'getMyProfile');
+}
+
 export async function getUserProfile(userId: string) {
   return await get<UserProfileResponse>(`/user/profile/${userId}`, 'getUserProfile');
 }
 
 export async function getGroupStudyList() {
-  return await get<GroupStudyListResponse>('/group-study/list', 'getGroupStudyList');
+  const groupStudyListResponse = await get<GroupStudyListResponse>(
+    '/group-study/list',
+    'getGroupStudyList',
+  );
+
+  return groupStudyListResponse.map((groupStudyResponse) => ({
+    ...groupStudyResponse,
+    groupDuration: new Date(groupStudyResponse.groupDuration),
+    createdAt: new Date(groupStudyResponse.createdAt),
+  }));
 }
 
-export async function getUserAchievement(userId: string) {
-  return await get<UserAcheivementResponse>(`/user/achievement/${userId}`, 'getUserAchievement');
+export async function getUserAchievement() {
+  return await get<UserAcheivementResponse>(`/user/achieve`, 'getUserAchievement');
 }
 
 export async function getSelfStudyList() {
@@ -62,8 +86,55 @@ export async function getGroupStudySearch(keyword: string, page?: number) {
 }
 
 export async function getGroupStudyPost(groupStudyId: string) {
-  return await get<GroupStudyPostResponse>(
+  const groupPostResponse = await get<GroupStudyPostResponse>(
     `/group-study/${groupStudyId}/post`,
     'getGroupStudyPost',
   );
+
+  const groupPost: GroupStudy = {
+    ...groupPostResponse,
+    groupDuration: new Date(groupPostResponse.groupDuration),
+    createdAt: new Date(groupPostResponse.createdAt),
+  };
+
+  return groupPost;
+}
+
+export async function patchMyProfile(userName: string, nickName: string) {
+  await patch(
+    `/user/profile`,
+    {
+      userName,
+      nickName,
+    },
+    'patchMyProfile',
+  );
+}
+
+export async function postUserProfileImage(formData: FormData) {
+  await post(`/user/profile/img`, formData, 'postUserProfileImage');
+}
+
+export async function postApplyGroupStudy(groupId: string) {
+  await post(`/group-study/apply?groupStudyId=${groupId}`, {}, 'postApplyGroupStudy');
+}
+
+export async function getLanguages() {
+  return get<LanguageResponse>(`/language`, 'getLanguages');
+}
+
+export async function postGroupStudy(body: CreateGroupStudyBody) {
+  await post(`/group-study`, body, 'postGroupStudy');
+}
+
+export async function getDoneStudy() {
+  return get<MyStudyResponse>(`/user/study/done`, 'getDoneStudy');
+}
+
+export async function getProgressStudy() {
+  return get<MyStudyResponse>(`/user/study/progress`, 'getDoneStudy');
+}
+
+export async function getApplyStudy() {
+  return get<MyStudyResponse>(`/user/study/apply`, 'getDoneStudy');
 }

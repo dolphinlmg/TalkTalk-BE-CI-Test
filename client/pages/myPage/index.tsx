@@ -4,32 +4,32 @@ import LazyImage from '@/components/LazyImage';
 import MyAchievementList from '@/components/MyAchievementList';
 import StudyCardList from '@/components/StudyCardList';
 import { useGlobalTheme } from '@/styles/GlobalThemeContext';
-import { getUserAchievement } from '@/utils/api';
+import {
+  getApplyStudy,
+  getDoneStudy,
+  getMyProfile,
+  getProgressStudy,
+  getUserAchievement,
+  patchMyProfile,
+  postUserProfileImage,
+} from '@/utils/api';
 import { DEAFULT_PLACEHOLDER_GRAY } from '@/utils/image';
 import { css } from '@emotion/react';
-import { useEffect, useState } from 'react';
-
-const testGroupData: GroupStudy = {
-  state: 'ongoing',
-  groupId: 'test',
-  languageId: 'qwer',
-  groupName: 'groupName',
-  groupPersonnel: 3,
-  tags: ['# 태그1', '# 태그2'],
-  introduction:
-    '안녕하세요. 개인적으로 네명정도 토익 스피킹 스터디 진행하실 분 모십니다. 매주 2일 스터디를 진행할 예정이며 현재 2명 모집되었습니다. 앞으로 두...',
-  groupDuration: new Date(),
-  ownerId: 'asdfsadf',
-  isFinished: false,
-};
+import { ChangeEvent, useEffect, useState } from 'react';
 
 export default function MyPage() {
   const { theme } = useGlobalTheme();
+  const [titleName, setTitleName] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [nickName, setNickName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [imageUrl, setImageUrl] = useState<string>(DEAFULT_PLACEHOLDER_GRAY);
   const [achievement, setAchievement] = useState<UserAcheivement | null>(null);
+  const [progressStudyList, setProgressStudyList] = useState<MyStudy[]>([]);
+  const [doneStudyList, setDoneStudyList] = useState<MyStudy[]>([]);
+  const [applyStudyList, setApplyStudyList] = useState<MyStudy[]>([]);
+
+  const newProfileImage: File[] = [];
 
   const style = {
     container: css`
@@ -80,20 +80,63 @@ export default function MyPage() {
   // to get user achievement
   useEffect(() => {
     (async () => {
-      try {
-        setAchievement(await getUserAchievement('test'));
-      } catch (e) {
-        if (e instanceof Error) {
-          console.error(`Error by getUserAchievement on myPage\n${e.message}`);
-        }
-      }
+      setAchievement(await getUserAchievement());
     })();
   }, []);
+
+  // to get my profile
+  useEffect(() => {
+    (async () => {
+      const myProfile = await getMyProfile();
+      setTitleName(myProfile.userName);
+      setName(myProfile.userName);
+      setNickName(myProfile.nickName);
+      setEmail(myProfile.email);
+      setImageUrl(myProfile.profileIconUrl);
+    })();
+  }, []);
+
+  // to get study list
+  useEffect(() => {
+    (async () => {
+      setProgressStudyList(await getProgressStudy());
+    })();
+
+    (async () => {
+      setDoneStudyList(await getDoneStudy());
+    })();
+
+    (async () => {
+      setApplyStudyList(await getApplyStudy());
+    })();
+  }, []);
+
+  const handleProfileUpdateButtonClick = async () => {
+    try {
+      await patchMyProfile(name, nickName);
+      if (newProfileImage.length !== 0) {
+        const formData = new FormData();
+
+        formData.append('imgFile', newProfileImage[0]);
+
+        postUserProfileImage(formData);
+
+        newProfileImage.pop();
+      }
+      alert('변경되었습니다.');
+    } catch (e) {}
+  };
+
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!!e.target.files?.[0]) {
+      newProfileImage.push(e.target.files[0]);
+    }
+  };
 
   return (
     <div css={style.container}>
       <h1 css={style.title}>
-        <span>{name}님</span>의 성장 여정이예요.
+        <span>{titleName}님</span>의 성장 여정이예요.
       </h1>
       <MyAchievementList achievement={achievement} />
 
@@ -114,7 +157,13 @@ export default function MyPage() {
           </div>
           <br />
           <br />
-          <Button value={'프로필 업데이트'} width={'130px'} height={'38px'} fontSize={'16px'} />
+          <Button
+            value={'프로필 업데이트'}
+            width={'130px'}
+            height={'38px'}
+            fontSize={'16px'}
+            onClick={handleProfileUpdateButtonClick}
+          />
         </div>
         <div css={style.profileImageContainer}>
           <LazyImage
@@ -124,12 +173,22 @@ export default function MyPage() {
             height={200}
             innerCss={style.profileImage}
           />
-          <Button
-            value={'수정'}
-            width={'48px'}
-            height={'38px'}
-            fontSize={'16px'}
-            innerCss={style.profileImageButton}
+          <label htmlFor="profile-file">
+            <Button
+              value={'수정'}
+              width={'48px'}
+              height={'38px'}
+              fontSize={'16px'}
+              innerCss={style.profileImageButton}
+            />
+          </label>
+          <input
+            type="file"
+            id="profile-file"
+            onChange={handleImageChange}
+            css={css`
+              display: none;
+            `}
           />
         </div>
       </div>
@@ -137,18 +196,11 @@ export default function MyPage() {
         <br />
         <br />
         <h2>진행중인 스터디</h2>
-        <StudyCardList
-          studyList={[testGroupData, testGroupData, testGroupData, testGroupData, testGroupData]}
-        />
+        <StudyCardList studyList={progressStudyList} />
         <h2>완료된 스터디</h2>
-        <StudyCardList
-          studyList={[testGroupData, testGroupData, testGroupData, testGroupData, testGroupData]}
-        />
+        <StudyCardList studyList={doneStudyList} />
         <h2>신청한 스터디</h2>
-        <StudyCardList
-          studyList={[testGroupData, testGroupData, testGroupData, testGroupData, testGroupData]}
-          isRegistered={false}
-        />
+        <StudyCardList studyList={applyStudyList} isRegistered={false} />
       </div>
     </div>
   );

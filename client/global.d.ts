@@ -10,10 +10,15 @@ interface GroupStudy {
   groupDuration: Date | null;
   ownerId: string;
   isFinished: boolean;
+  createdAt: Date;
 }
 
-type GroupStudyPostResponse = GroupStudy;
-type GroupStudyListResponse = GroupStudy[];
+interface GroupStudyPostResponse extends GroupStudy {
+  groupDuration: string;
+  createdAt: string;
+}
+
+type GroupStudyListResponse = GroupStudyPostResponse[];
 
 interface UserProfile {
   userName: string;
@@ -59,4 +64,33 @@ interface GroupStudySearchResponse {
   groupIds: string[];
   totalPage: number;
   currentPage: number;
+}
+
+interface Language {
+  label: string;
+  id: string;
+}
+
+type LanguageResponse = Language[];
+
+interface CreateGroupStudyBody {
+  languageId: string;
+  groupName: string;
+  tags: string[];
+  introduction: string;
+  groupPersonnel: number;
+  groupDuration: string | null;
+}
+
+interface MyStudy {
+  groupId: string;
+  groupName: string;
+  tags: string[];
+}
+
+type MyStudyResponse = MyStudy[];
+
+interface GroupStudyUserInfo extends UserProfile {
+  isOnline: boolean;
+  isOwner: boolean;
 }
